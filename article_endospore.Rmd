@@ -109,7 +109,7 @@ head(track)
 ## 8 - Taxonomie
 
 ```{r}
-taxa <- assignTaxonomy(seqtab.nochim, "/home/rstudio/Dada222/silva_nr99_v138.1_train_set.fa.gz", multithread=FALSE) #compare chaque ASV à la base de référence SILVA
+taxa <- assignTaxonomy(seqtab.nochim, "/home/rstudio/tutoriel_dada2/Endospore/silva_nr99_v138.2_toGenus_trainset.fa.gz", multithread=FALSE) #compare chaque ASV à la base de référence SILVA
 taxa.print <- taxa # Copie dont on enlève les noms de lignes pour l'affichage
 rownames(taxa.print) <- NULL
 head(taxa.print)

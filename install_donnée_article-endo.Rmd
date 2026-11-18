@@ -1,6 +1,6 @@
 ---
 title: "install_donnée_article"
-output: html_document
+output: git_document
 date: "2026-11-18"
 ---
 ```{bash}
@@ -14,3 +14,5 @@ dans terminal :
 ```
 
 ls |wc -l : permet de voir combien de fichier il y a (je suis censé en avoir 88 + 1 avec le dossier ENA)
+
+p
