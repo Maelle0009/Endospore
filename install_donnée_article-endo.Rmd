@@ -1,0 +1,16 @@
+---
+title: "install_donnée_article"
+output: html_document
+date: "2026-11-18"
+---
+```{bash}
+sed -i 's|ftp://|https://|g; s|wget -nc|wget -c --tries=10 --retry-connrefused --waitretry=5|g' ena-file-download-read_run-PRJNA843862-fastq_ftp-20261118-1329.sh 
+```
+
+dans terminal : 
+  
+```{bash}
+ source ena-file ena-file-download-read_run-PRJNA843862-fastq_ftp-20261118-1329.sh 
+```
+
+ls |wc -l : permet de voir combien de fichier il y a (je suis censé en avoir 88 + 1 avec le dossier ENA)
