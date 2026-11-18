@@ -1,0 +1,116 @@
+---
+title: "Endospore_article"
+output: html_document
+date: "2026-11-18"
+---
+
+```{r}
+library(dada2)
+ech = read.table ("SraRunTable(1).csv", header=TRUE, dec=".", stringsAsFactors=TRUE, sep=";")
+head (ech)
+path <- "/home/rstudio/tutoriel_dada2/Endospore/data_endospore"
+list.files(path)
+```
+
+```{r}
+fnFs <- sort(list.files(path, pattern="_1.fastq.gz", full.names = TRUE))
+fnRs <- sort(list.files(path, pattern="_2.fastq.gz", full.names = TRUE))
+
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+
+plotQualityProfile (fnFs[1:2])
+
+```
+
+```{r}
+plotQualityProfile(fnRs[1:2])
+```
+
+```{r}
+filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+names(filtFs) <- sample.names
+names(filtRs) <- sample.names
+
+length(fnFs); length(fnRs)
+data.frame(F = basename(fnFs), R = basename(fnRs))
+data.frame(F = basename(fnFs), sizeF = file.size(fnFs),
+           R = basename(fnRs), sizeR = file.size(fnRs))
+
+```
+
+```{r}
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(250,220),
+              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
+              compress=TRUE, multithread=FALSE) 
+head(out)
+```
+
+
+```{r}
+errF <- learnErrors(filtFs, multithread=TRUE, nbases = 10000) #On essaye avec ca car beug'
+errR <- learnErrors(filtRs, multithread=TRUE)
+
+plotErrors(errF, nominalQ=TRUE)
+```
+
+```{r}
+dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+```
+
+```{r}
+dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
+```
+
+```{r}
+dadaFs[[1]]
+```
+
+```{r}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+head(mergers[[1]])
+```
+
+```{r}
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
+```
+
+```{r}
+table(nchar(getSequences(seqtab)))
+```
+
+```{r}
+seqtab <- seqtab[, nchar(colnames(seqtab)) %in% 400:440] #filtrer les longueur abérantes. 
+```
+
+## 6 - Chimères
+
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+dim(seqtab.nochim)
+```
+
+```{r}
+sum(seqtab.nochim)/sum(seqtab)
+```
+
+## 7 - Suivi des reads
+
+```{r}
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim)) 
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+```
+
+
+## 8 - Taxonomie
+
+```{r}
+taxa <- assignTaxonomy(seqtab.nochim, "/home/rstudio/Dada222/silva_nr99_v138.1_train_set.fa.gz", multithread=FALSE) #compare chaque ASV à la base de référence SILVA
+taxa.print <- taxa # Copie dont on enlève les noms de lignes pour l'affichage
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```

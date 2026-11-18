@@ -1,0 +1,11 @@
+---
+title: "endospore_article"
+output: html_document
+date: "2026-11-18"
+---
+
+```{r}
+```
+
+
+
